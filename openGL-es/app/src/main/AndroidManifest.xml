@@ -36,6 +36,7 @@
             android:name=".ResultActivity"
             android:label="Kết quả so sánh" />
 
+
     </application>
 
 </manifest>

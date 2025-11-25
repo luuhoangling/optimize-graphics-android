@@ -5,11 +5,15 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.graphicstest.CanvasTestActivity
+import com.example.graphicstest.OpenGLTestActivity
+import com.example.graphicstest.ResultActivity
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var btnCanvas: Button
     private lateinit var btnOpenGL: Button
+    private lateinit var btnTexture: Button
     private lateinit var btnResult: Button
     private lateinit var textResult: TextView
 
@@ -43,7 +47,6 @@ class MainActivity : AppCompatActivity() {
     private fun showQuickResult() {
         val prefs = getSharedPreferences("results", MODE_PRIVATE)
 
-        // ✅ ĐỌC ĐÚNG KEY (Float, không phải Long)
         val canvasTime = prefs.getFloat("canvas_render_time", 0f).toDouble()
         val openglTime = prefs.getFloat("opengl_render_time", 0f).toDouble()
 
@@ -52,13 +55,13 @@ class MainActivity : AppCompatActivity() {
             val faster = if (openglTime < canvasTime) "OpenGL ES" else "Canvas"
 
             textResult.text = """
-                🎨 Canvas: ${String.format("%.2f", canvasTime)} ms
-                ⚡ OpenGL ES: ${String.format("%.2f", openglTime)} ms
+                Canvas: ${String.format("%.2f", canvasTime)} ms
+                OpenGL ES: ${String.format("%.2f", openglTime)} ms
                 
-                $faster nhanh hơn ${String.format("%.2f", ratio)}x
+                $faster nhanh hơn ${String.format("%.2fx", ratio)}
             """.trimIndent()
         } else {
-            textResult.text = "Chưa test đủ 2 phương pháp"
+            textResult.text = "Chưa test đủ 2 phương pháp."
         }
     }
 }

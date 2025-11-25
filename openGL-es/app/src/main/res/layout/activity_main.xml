@@ -24,7 +24,7 @@
         android:text="Đo thời gian inflate view"
         android:textSize="16sp"
         android:textColor="#666666"
-        android:layout_marginBottom="40dp" />
+        android:layout_marginBottom="32dp" />
 
     <Button
         android:id="@+id/btn_canvas"
@@ -42,6 +42,7 @@
         android:text="⚡ Test OpenGL ES (GPU)"
         android:textSize="18sp"
         android:backgroundTint="#4CAF50" />
+
 
     <Button
         android:id="@+id/btn_result"

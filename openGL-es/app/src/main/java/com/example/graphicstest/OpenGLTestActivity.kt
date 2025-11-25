@@ -27,7 +27,12 @@ class OpenGLTestActivity : AppCompatActivity() {
         glSurfaceView.setRenderer(RectanglesRenderer(this))
         setContentView(glSurfaceView)
 
-        glSurfaceView.postDelayed({ finish() }, 3000)
+        // Bật nút Back (ActionBar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "OpenGL Performance"
+
+        // XÓA dòng tự động finish sau 3 giây!
+        // glSurfaceView.postDelayed({ finish() }, 3000)
     }
 
     override fun onPause() {
@@ -38,6 +43,12 @@ class OpenGLTestActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         glSurfaceView.onResume()
+    }
+
+    // Khi bấm icon Back (ActionBar) thì mới thoát về trang chủ
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 }
 
@@ -59,7 +70,6 @@ class RectanglesRenderer(private val activity: OpenGLTestActivity) : GLSurfaceVi
     )
 
     init {
-        // ✅ TĂNG LÊN 20,000 HÌNH
         for (i in 0 until 20000) {
             val x = Random.nextFloat() * 2 - 1
             val y = Random.nextFloat() * 2 - 1
@@ -133,20 +143,15 @@ class RectanglesRenderer(private val activity: OpenGLTestActivity) : GLSurfaceVi
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
-
         val ratio = width.toFloat() / height
         Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, 3f, 7f)
         Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 3f, 0f, 0f, 0f, 0f, 1f, 0f)
     }
 
     override fun onDrawFrame(gl: GL10?) {
-
-        // ✅ TRACE MARKER - Bắt đầu đo toàn bộ render
         Trace.beginSection("OpenGL_Render_20000_Shapes")
-
         val startRender = if (!hasMeasured) System.nanoTime() else 0L
 
-        // ✅ TRACE MARKER - Clear screen
         Trace.beginSection("OpenGL_Clear")
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
         GLES20.glUseProgram(program)
@@ -156,7 +161,6 @@ class RectanglesRenderer(private val activity: OpenGLTestActivity) : GLSurfaceVi
         val colorHandle = GLES20.glGetUniformLocation(program, "vColor")
         val mvpMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix")
 
-        // ✅ TRACE MARKER - Vẽ 20,000 hình
         Trace.beginSection("OpenGL_Draw_Rectangles")
         for (rect in rectangles) {
             val modelMatrix = FloatArray(16)
@@ -168,43 +172,35 @@ class RectanglesRenderer(private val activity: OpenGLTestActivity) : GLSurfaceVi
             Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, tempMatrix, 0)
 
             GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0)
-
             GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, 12, rect.vertexBuffer)
             GLES20.glEnableVertexAttribArray(positionHandle)
             GLES20.glUniform4fv(colorHandle, 1, rect.color, 0)
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         }
         GLES20.glDisableVertexAttribArray(positionHandle)
-        Trace.endSection() // End Draw_Rectangles
+        Trace.endSection()
 
-        // ✅ QUAN TRỌNG: Đồng bộ GPU để đo chính xác
         Trace.beginSection("OpenGL_Finish")
         GLES20.glFinish()
         Trace.endSection()
 
         if (!hasMeasured) {
             val renderTime = (System.nanoTime() - startRender) / 1_000_000.0
-
             activity.runOnUiThread {
                 activity.getSharedPreferences("results", android.content.Context.MODE_PRIVATE)
                     .edit()
                     .putFloat("opengl_render_time", renderTime.toFloat())
                     .apply()
-
                 Log.d("OpenGLTest", "OpenGL ES render time: $renderTime ms")
-
                 Toast.makeText(
                     activity,
                     "OpenGL ES: ${String.format("%.2f", renderTime)} ms",
                     Toast.LENGTH_LONG
                 ).show()
             }
-
             hasMeasured = true
         }
-
-        // ✅ TRACE MARKER - Kết thúc đo toàn bộ
-        Trace.endSection() // End OpenGL_Render_20000_Shapes
+        Trace.endSection()
     }
 
     private fun loadShader(type: Int, shaderCode: String): Int {

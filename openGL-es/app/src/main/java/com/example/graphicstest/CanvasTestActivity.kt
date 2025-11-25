@@ -18,7 +18,18 @@ class CanvasTestActivity : AppCompatActivity() {
         val canvasView = CanvasRenderView(this)
         setContentView(canvasView)
 
-        canvasView.postDelayed({ finish() }, 3000)
+        // Hiển thị nút quay lại trên ActionBar
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Canvas Performance"
+
+        // Đã xóa: Không còn finish() tự động nữa
+        // canvasView.postDelayed({ finish() }, 3000)
+    }
+
+    // Xử lý sự kiện khi người dùng nhấn nút Back (mũi tên ActionBar)
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 }
 
@@ -38,7 +49,7 @@ class CanvasRenderView(context: Context) : View(context) {
     )
 
     init {
-        // ✅ TĂNG LÊN 20,000 HÌNH
+        // Vẽ 20,000 hình ngẫu nhiên (cho test hiệu năng)
         for (i in 0 until 20000) {
             val left = Random.nextFloat() * 2000
             val top = Random.nextFloat() * 3000
@@ -66,12 +77,12 @@ class CanvasRenderView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        // ✅ TRACE MARKER - Bắt đầu đo toàn bộ render
+        // Đo hiệu năng bằng Trace
         Trace.beginSection("Canvas_Render_20000_Shapes")
 
         val startRender = if (!hasMeasured) System.nanoTime() else 0L
 
-        // ✅ TRACE MARKER - Background
+        // Background gradient
         Trace.beginSection("Canvas_Background")
         val gradient = LinearGradient(
             0f, 0f, width.toFloat(), height.toFloat(),
@@ -81,33 +92,29 @@ class CanvasRenderView(context: Context) : View(context) {
         paint.shader = gradient
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
         paint.shader = null
-        Trace.endSection() // End Background
+        Trace.endSection()
 
-        // ✅ TRACE MARKER - Vẽ 20,000 hình
+        // Vẽ hình
         Trace.beginSection("Canvas_Draw_Rectangles")
         for (rect in rectangles) {
             canvas.save()
-
             canvas.rotate(
                 rect.rotation,
                 (rect.left + rect.right) / 2,
                 (rect.top + rect.bottom) / 2
             )
-
             paint.color = rect.color
             paint.style = Paint.Style.FILL
             paint.setShadowLayer(5f, 2f, 2f, Color.BLACK)
-
             canvas.drawRect(rect.left, rect.top, rect.right, rect.bottom, paint)
-
             canvas.restore()
         }
-        Trace.endSection() // End Draw_Rectangles
+        Trace.endSection()
 
         if (!hasMeasured) {
-            val renderTime = (System.nanoTime() - startRender) / 1_000_000.0
+            val renderTime = (System.nanoTime() - startRender) / 1_000_000.0 // ms
 
-            // ✅ TRACE MARKER - Vẽ text kết quả
+            // Hiển thị kết quả
             Trace.beginSection("Canvas_Draw_Text")
             paint.clearShadowLayer()
             paint.color = Color.WHITE
@@ -115,16 +122,14 @@ class CanvasRenderView(context: Context) : View(context) {
             paint.style = Paint.Style.FILL
             canvas.drawText("Canvas (CPU)", 50f, 120f, paint)
             canvas.drawText("${String.format("%.2f", renderTime)} ms", 50f, 200f, paint)
-
             paint.textSize = 40f
             canvas.drawText("20,000 shapes + effects", 50f, 280f, paint)
-            Trace.endSection() // End Draw_Text
+            Trace.endSection()
 
             context.getSharedPreferences("results", Context.MODE_PRIVATE)
                 .edit()
                 .putFloat("canvas_render_time", renderTime.toFloat())
                 .apply()
-
             Log.d("CanvasTest", "Canvas render time: $renderTime ms")
 
             Toast.makeText(
@@ -136,7 +141,6 @@ class CanvasRenderView(context: Context) : View(context) {
             hasMeasured = true
         }
 
-        // ✅ TRACE MARKER - Kết thúc đo toàn bộ
-        Trace.endSection() // End Canvas_Render_20000_Shapes
+        Trace.endSection()
     }
 }
