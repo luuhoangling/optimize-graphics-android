@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Graphics Test"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Material3.Light"
+        tools:targetApi="31">
+
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Canvas Test Activity -->
+        <activity
+            android:name=".CanvasTestActivity"
+            android:label="Canvas Test" />
+
+        <!-- OpenGL ES Test Activity -->
+        <activity
+            android:name=".OpenGLTestActivity"
+            android:label="OpenGL ES Test" />
+
+        <!-- Result Activity -->
+        <activity
+            android:name=".ResultActivity"
+            android:label="Kết quả so sánh" />
+
+    </application>
+
+</manifest>
